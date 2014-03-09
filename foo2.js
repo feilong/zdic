@@ -1,4 +1,5 @@
 var url = 'http://www.zdic.net/c/cibs/ci/?z=%E9%A9%AC';
+var target = '%E9%A9%AC';
 
 var casper = require('casper').create({
     clientScripts:  [
@@ -13,45 +14,89 @@ var casper = require('casper').create({
 });
 
 casper.start(url);
+casper.then(function() { // test folder
+});
+casper.then(function() { // test url encode
+    this.echo('马');
+    this.echo(encodeURI('马'));
+});
 casper.then(function() {
-    console.log(this.getCurrentUrl());
-    this.echo(this.getTitle());
-    this.click('a[href="javascript:void(0);"]');
+    this.echo('Page URL: '+this.getCurrentUrl());
+    this.echo('Page Title: '+this.getTitle());
+    // this.click('a[href="javascript:void(0);"]');
     this.echo(this.exists('a[href="javascript:void(0);"]'));
-    this.wait(10000);
+    // this.wait(10000);
 });
-casper.then(function() {
-    var txt = this.evaluate(function() {
-	var elements = __utils__.findAll('a[href="javascript:void(0);"]');
-	var li = Array();
-	elements.forEach(function(entry) {
-	    li.push(entry.innerHTML);
-	});
-	return li;
-    });
-    this.echo(txt);
-});
-casper.then(function() {
-    this.echo(this.exists('a[href^="/c/"]'));
-});
+
+var count = 1;
 var links;
-casper.then(function() {
-    links = this.evaluate(function() {
-	var elements = __utils__.findAll('a[href^="/c/"]');
-	var links = Array();
-	elements.forEach(function(entry) {
-	    // links.push(entry.getAttribute('href'));
-	    links.push(entry.innerHTML);
+var next_page_exists = true;
+casper.repeat(3, function() {
+    this.wait(1000);
+    if (next_page_exists) {
+	this.echo('Page Number: '+count);
+	links = this.evaluate(function() {
+	    var elements = __utils__.findAll('a[href^="/c/"]');
+	    var links = Array();
+	    elements.forEach(function(entry) {
+		// links.push(entry.getAttribute('href'));
+		links.push(entry.innerHTML);
+	    });
+	    return links;
 	});
-	return links
-	// return Array.prototype.forEach.call(elements, function(e) {
-	//     return e.getAttribute('href');
-	// });
-    });
+	this.echo('=== Links Start ===');
+	this.echo(links);
+	this.echo('=== Links End ===');
+    }
+    count++;
+    // this.echo(count);
+    if (this.exists('a[onclick="shd(\'' + target + '|' + count  + '\');"]')) {
+    	this.echo('Next page exists.');
+	next_page_exists = true;
+	this.click('a[onclick="shd(\'' + target + '|' + count  + '\');"]');
+	this.echo('Clicking next page.');
+    } else {
+    	this.echo('Next page doesn\'t exists');
+	next_page_exists = false;
+    }
 });
-casper.then(function() {
-    this.echo(links);
-});
+
+// casper.then(function() { // find link for the next page
+//     next_page_link = this.evaluate(function() {
+// 	var elements = __utils__.findAll('a[href="javascript:void(0);"]');
+// 	var next_page_link;
+// 	elements.forEach(function(entry) {
+// 	    if (entry.innerHTML === '下一页') {
+// 		next_page_link = entry.getAttribute;
+// 	    }
+// 	});
+// 	return next_page_link;
+//     });
+//     this.echo(next_page_link);
+// });
+
+// casper.then(function() {
+//     this.echo(this.exists('a[href^="/c/"]'));
+// });
+
+// var links;
+// casper.then(function() {
+//     links = this.evaluate(function() {
+// 	var elements = __utils__.findAll('a[href^="/c/"]');
+// 	var links = Array();
+// 	elements.forEach(function(entry) {
+// 	    // links.push(entry.getAttribute('href'));
+// 	    links.push(entry.innerHTML);
+// 	});
+// 	return links;
+// 	// return Array.prototype.forEach.call(elements, function(e) {
+// 	//     return e.getAttribute('href');
+// 	// });
+//     });
+// });
+// casper.then(function() {
+//     this.echo(links);
+// });
 casper.run();
 // var page = require('webpage').create();  
 
