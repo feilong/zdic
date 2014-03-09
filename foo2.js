@@ -1,6 +1,7 @@
 var url = 'http://www.zdic.net/c/cibs/ci/?z=%E9%A9%AC';
 var target = '%E9%A9%AC';
-
+var target_char = '马';
+var fs = require('fs');
 var casper = require('casper').create({
     clientScripts:  [
 	'http://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js'
@@ -14,8 +15,21 @@ var casper = require('casper').create({
 });
 
 casper.start(url);
-casper.then(function() { // test folder
-});
+// casper.then(function() { // test folder
+//     var folder = new Folder('URLs/'+target_char+'/');
+//     if (f.exists) {
+// 	this.echo('Folder exists.');
+//     } else {
+// 	this.echo('Folder doesn\'t exist.');
+// 	f.create();
+//     }
+//     if (f.exists) {
+// 	this.echo('Folder exists.');
+//     } else {
+// 	this.echo('Folder doesn\'t exist.');
+// 	f.create();
+//     }
+// });
 casper.then(function() { // test url encode
     this.echo('马');
     this.echo(encodeURI('马'));
@@ -29,24 +43,27 @@ casper.then(function() {
 });
 
 var count = 1;
-var links;
 var next_page_exists = true;
 casper.repeat(3, function() {
     this.wait(1000);
     if (next_page_exists) {
 	this.echo('Page Number: '+count);
-	links = this.evaluate(function() {
+	var links = this.evaluate(function() {
 	    var elements = __utils__.findAll('a[href^="/c/"]');
 	    var links = Array();
 	    elements.forEach(function(entry) {
 		// links.push(entry.getAttribute('href'));
-		links.push(entry.innerHTML);
+		links.push([entry.innerHTML, entry.getAttribute('href')]);
 	    });
 	    return links;
 	});
 	this.echo('=== Links Start ===');
 	this.echo(links);
 	this.echo('=== Links End ===');
+	this.echo('Starting write links to files.');
+	links.forEach(function(link) {
+	    fs.write('URLs/'+target_char+'/'+link[0], link[1], 'w');
+	});
     }
     count++;
     // this.echo(count);
