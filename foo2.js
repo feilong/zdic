@@ -24,7 +24,7 @@ var count = 1;
 var next_page_exists = true;
 casper.repeat(30, function() {
     if (next_page_exists) {
-	this.wait(1000);
+	this.wait(5000);
 	this.echo('Page Number: '+count);
 	var links = this.evaluate(function() {
 	    var elements = __utils__.findAll('a[href^="/c/"]');
